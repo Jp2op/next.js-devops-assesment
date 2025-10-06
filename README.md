@@ -1,39 +1,212 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# DevOps Assessment - Next.js Containerized Application
 
-## Getting Started
+A containerized Next.js application deployed to Kubernetes using Docker, GitHub Actions, and Minikube.
 
-First, run the development server:
+## 🚀 Features
+
+- Multi-stage Docker build for optimized image size
+- Automated CI/CD pipeline with GitHub Actions
+- Kubernetes deployment with health checks
+- Production-ready configuration
+
+## 📋 Prerequisites
+
+- Node.js 20+ and npm
+- Docker Desktop
+- Minikube
+- kubectl
+- Git
+
+## 🛠️ Local Development
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/Jp2op/next.js-devops-assesment.git
+cd next.js-devops-assesment
+```
+
+### 2. Install Dependencies
+
+```bash
+npm install
+```
+
+### 3. Run Development Server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Visit `http://localhost:3000` to see your application.
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+## 🐳 Docker
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Build Docker Image Locally
 
-## Learn More
+```bash
+docker build -t nextjs-app:local .
+```
 
-To learn more about Next.js, take a look at the following resources:
+### Run Docker Container Locally
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+docker run -p 3000:3000 nextjs-app:local
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Visit `http://localhost:3000` to access the containerized application.
 
-## Deploy on Vercel
+## 🔄 GitHub Actions CI/CD
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+The GitHub Actions workflow automatically:
+1. Builds the Docker image on push to `main` branch
+2. Pushes the image to GitHub Container Registry (GHCR)
+3. Tags images with:
+   - `latest` (for main branch)
+   - Branch name
+   - Git SHA
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Setup GHCR Access
+
+1. The workflow uses `GITHUB_TOKEN` automatically
+2. Make sure your repository is public or configure package visibility
+3. Image will be available at: `ghcr.io/jp2op/next.js-devops-assesment:latest`
+
+## ☸️ Kubernetes Deployment with Minikube
+
+### 1. Start Minikube
+
+```bash
+minikube start --driver=docker
+```
+
+### 2. Update Deployment Image
+
+Edit `k8s/deployment.yaml` and replace my username with your GitHub username:
+
+```yaml
+image: ghcr.io/jp2op/next.js-devops-assesment:latest
+```
 
 
-test 2
+### 3. Deploy to Kubernetes
+
+```bash
+# Apply deployment
+kubectl apply -f k8s/deployment.yml
+
+# Apply service
+kubectl apply -f k8s/service.yml
+```
+
+### 4. Verify Deployment
+
+```bash
+# Check pods
+kubectl get pods
+
+# Check deployment
+kubectl get deployment nextjs-app
+
+# Check service
+kubectl get service nextjs-service
+```
+
+### 5. Access the Application
+
+#### Using Minikube Service
+
+```bash
+minikube service nextjs-service
+```
+
+This will automatically open the application in your browser.
+
+
+## 📊 Monitoring
+
+### View Logs
+
+```bash
+kubectl logs -f deployment/nextjs-app
+```
+
+### Check Pod Health
+
+```bash
+kubectl describe pod <pod-name>
+```
+
+### Scale Deployment
+
+```bash
+kubectl scale deployment nextjs-app --replicas=5
+```
+
+## 🧹 Cleanup
+
+### Delete Kubernetes Resources
+
+```bash
+kubectl delete -f k8s/
+```
+
+### Stop Minikube
+
+```bash
+minikube stop
+minikube delete
+```
+
+## 📁 Project Structure
+
+```
+.
+├── .github/
+│   └── workflows/
+│       └── docker-build.yml    # CI/CD pipeline
+├── k8s/
+│   ├── deployment.yaml         # Kubernetes deployment
+│   └── service.yaml            # Kubernetes service
+├── app/                        # Next.js app directory
+├── public/                     # Static assets
+├── Dockerfile                  # Multi-stage Docker build
+├── .dockerignore              # Docker ignore rules
+├── next.config.js             # Next.js configuration
+├── package.json               # Node.js dependencies
+└── README.md                  # Documentation
+```
+
+## 🔧 Configuration Details
+
+### Docker Optimization
+- Multi-stage build reduces image size
+- Node Alpine base image (~40MB vs ~900MB)
+- Standalone output for minimal runtime dependencies
+- Non-root user for security
+- Layer caching optimization
+
+### Kubernetes Features
+- **3 replicas** for high availability
+- **Resource limits** to prevent resource exhaustion
+- **Liveness probe** to detect and restart unhealthy containers
+- **Readiness probe** to manage traffic routing
+- **NodePort service** for external access
+
+### Health Checks
+- Liveness: Checks every 10s, restarts after 3 failures
+- Readiness: Checks every 5s, removes from service after 3 failures
+
+## 🔗 Links
+
+- **Repository**: https://github.com/Jp2op/next.js-devops-assesment.git
+- **GHCR Image**: ghcr.io/jp2op/next.js-devops-assesment:latest
+
+## 📝 License
+
+MIT
+
+## 👤 Author
+
+Jp - DevOps Assessment Submission
+This project was created as a part of assigment from WEXA AI
